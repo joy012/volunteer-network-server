@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
+const ObjectId = require('mongodb').ObjectId;
 const admin = require('firebase-admin');
 const serviceAccount = require("./config/volunteer-network-spa-firebase-adminsdk-mbnvv-1051d3a22b.json");
 require('dotenv').config()
@@ -15,7 +16,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const app = express();
-
+const port = 3360;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -75,8 +76,23 @@ client.connect(err => {
         }
     })
 
+    app.get('/allVolunteer', (req, res) => {
+        volunteerCollection.find({})
+            .toArray( (err,documents) => {
+            res.status(200).send(documents);
+        })    
+    })
+
+    app.delete('/deleteTask/:id', (req, res) => {
+        const id = req.params.id;
+        volunteerCollection.deleteOne({_id: ObjectId(req.params.id)})
+        .then(result => {
+            res.send(result.deletedCount > 0)
+        })
+    })
+
 })
 
 
 
-app.listen(3360);
+app.listen(process.env.PORT || port);
